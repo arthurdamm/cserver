@@ -1,0 +1,34 @@
+Useful Links:
+https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html
+https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
+https://www.gnu.org/software/libc/manual/html_node/Sockets.html
+
+
+Simple Socket Server in C:
+
+1. Create IPv4 socket descriptor using TCP/IP protocol
+man 2 socket
+int socket(int domain, int type, int protocol);
+
+1b. Convert multi-byte values from host Little Endian to network-order Big Endian
+man 3 htons
+
+2. Bind our socket to a port and local IP address
+man 2 bind
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+3. Mark our socket as passive listening for connections
+man 2 listen
+int listen(int sockfd, int backlog);
+
+4. Wait for a client connection to our socket
+man 2 accept
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+5. Resolve IP name of our connected client
+man 3 inet_ntop
+const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
+
+6. Read & write from/to connected client socket with familiar syscalls :)
+
+7. Serve up files located in current (sub)directory.
