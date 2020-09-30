@@ -26,5 +26,6 @@
 int accept_connections(int server_sd);
 int parse_request(int client_sd, char *request);
 int send_response(int client_sd, char *response, char *body);
+char *read_file(int fd);
 
 #endif

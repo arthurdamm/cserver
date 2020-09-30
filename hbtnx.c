@@ -65,10 +65,8 @@ int accept_connections(int server_sd)
 int parse_request(int client_sd, char *request)
 {
 	char method[SMALL_BUF + 1] = {0}, path[SMALL_BUF + 1] = {0},
-		version[SMALL_BUF + 1] = {0}, file_buf[READ_BUF + 1],
-		*_path = path;
+		version[SMALL_BUF + 1] = {0}, *_path = path, *file;
 	int fd;
-	ssize_t bytes;
 
 	printf("RAW REQUEST:[%s]\n", request);
 	if (sscanf(request, "%s %s %s\r\n", method, path, version) != 3)
@@ -85,14 +83,12 @@ int parse_request(int client_sd, char *request)
 	fd = open(_path, O_RDONLY);
 	if (fd == -1)
 		return (send_response(client_sd, RESPONSE_404, NULL), EXIT_FAILURE);
-
-	bytes = read(fd, file_buf, READ_BUF);
-	if (bytes > 0)
-	{
-		file_buf[bytes] = 0;
-		return (send_response(client_sd, RESPONSE_200, file_buf), EXIT_SUCCESS);
-	}
-	return (send_response(client_sd, RESPONSE_500, NULL), EXIT_FAILURE);
+	file = read_file(fd);
+	if (!file)
+		return (send_response(client_sd, RESPONSE_500, file), EXIT_SUCCESS);
+	send_response(client_sd, RESPONSE_200, file);
+	free(file);
+	return (EXIT_SUCCESS);
 }
 
 int send_response(int client_sd, char *response, char *body)
@@ -114,3 +110,22 @@ int send_response(int client_sd, char *response, char *body)
 	return (EXIT_SUCCESS);
 }
 
+char *read_file(int fd)
+{
+	char read_buf[READ_BUF + 1], *file = NULL;
+	ssize_t bytes, prev_bytes = 0;
+
+	while ((bytes = read(fd, read_buf, READ_BUF)) > 0)
+	{
+		read_buf[bytes] = 0;
+		file = realloc(file, prev_bytes ? prev_bytes += bytes : (prev_bytes = bytes + 1));
+		if (!file)
+			return (NULL);
+		if (prev_bytes == bytes + 1)
+			file[0] = 0;
+		strcat(file, read_buf);
+	}
+	if (bytes == -1)
+		return (free(file), NULL);
+	return (file);
+}
